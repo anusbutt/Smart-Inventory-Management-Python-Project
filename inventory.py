@@ -1,5 +1,6 @@
 import json
 from datetime import datetime
+import os
 
 class Product:
     def __init__(self, sku, name, category, price, stock, created_at=None):
@@ -19,6 +20,7 @@ class Product:
             "stock": self.stock,
             "created_at": self.created_at
         }
+
 class Inventory:
     def __init__(self, db_path="database.json"):
         self.db_path = db_path
@@ -26,10 +28,16 @@ class Inventory:
 
     def load_data(self):
         try:
+            if not os.path.exists(self.db_path) or os.path.getsize(self.db_path) == 0:
+                # Create the file if it doesn't exist or is empty
+                with open(self.db_path, "w") as f:
+                    json.dump({}, f)
+
             with open(self.db_path, "r") as f:
                 data = json.load(f)
                 return {k: Product(**v) for k, v in data.items()}
-        except FileNotFoundError:
+
+        except (FileNotFoundError, json.JSONDecodeError):
             return {}
 
     def save_data(self):
